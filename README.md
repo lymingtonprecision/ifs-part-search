@@ -64,7 +64,7 @@ separated) values, and be negated.
 See the [query parser documentation] for full details of the available
 search syntax.
 
-[query parser documentation]: ./tree/master/src/ifs_part_search/query_parser.clj
+[query parser documentation]: ./src/ifs_part_search/query_parser.clj
 
 ## Acknowledgements
 
