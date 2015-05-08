@@ -7,19 +7,69 @@
 
 (use-fixtures :once schema.test/validate-schemas)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers to create the expected return values
+
+(def select-fields "SELECT ip.part_no, ip.description")
+(def from-tables "FROM ifsapp.inventory_part ip")
+(def where-contains "contains(ip.text_id$, ?, 1) > 0")
+(def order-by "ORDER BY score(1) DESC, ip.description DESC")
+
+(defn where-planner
+  "Returns a `where` clause for `n` planner values (default `1`)
+  which can optionally be `negative?` (i.e. a `not` clause.)
+
+      (where-planner)        ;=> \"(ip.planner_buyer in (?))\"
+      (where-planner 3)      ;=> \"(ip.planner_buyer in (?, ?, ?))\"
+      (where-planner 1 true) ;=> \"(ip.planner_buyer not in (?))\"
+  "
+  ([] (where-planner 1))
+  ([n] (where-planner n false))
+  ([n negative?]
+   (str "(ip.planner_buyer "
+        (if negative? "not ")
+        "in ("
+        (str/join ", " (repeat n "?"))
+        "))")))
+
+(defn expected-stmt
+  "Constructs the expected return value for `query->sql` tests.
+  `where-clauses` should be a collection of additional `where` clauses
+  and `params` the collection of expected parameter values.
+
+      (expected-stmt [(:query q)])
+      ;=> [\"SELECT ...\" <query value>]
+      (expected-stmt [(where-planner)] [(:query q) planner])
+      ;=> [\"SELECT ... WHERE ... (ip.planner_buyer ...) ...\"
+      ;=>  <query value> planner]
+  "
+  ([params] (expected-stmt nil params))
+  ([where-clauses params]
+   (let [where (if (seq where-clauses)
+                 (str "("
+                      (str/join
+                       " AND "
+                       (cons where-contains (vec where-clauses)))
+                      ")")
+                 where-contains)
+         sql (str/join
+              " "
+              [select-fields
+               from-tables
+               "WHERE" where
+               order-by])]
+     (cons sql (vec params)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; query->sql
+
 (deftest an-empty-query-yeilds-nil
   (is (nil? (qw/query->sql {:query nil :filters {}}))))
 
 (deftest unfiltered-query
   (let [q (qp/search-str->query
            "bias unit 900")]
-    (is (= [(str "SELECT"
-                 " ip.part_no, ip.description"
-                 " FROM ifsapp.inventory_part ip"
-                 " WHERE contains(ip.text_id$, ?, 1) > 0"
-                 " ORDER BY score(1) DESC, ip.description DESC")
-            (:query q)]
-           (qw/query->sql q)))))
+    (is (= (expected-stmt [(:query q)]) (qw/query->sql q)))))
 
 (deftest planner-filter-values-are-upcased
   (let [p "jelliott"
@@ -30,30 +80,14 @@
   (let [p "JELLIOTT"
         q (qp/search-str->query
            (str "bias unit 900 planner:" p))]
-    (is (= [(str "SELECT"
-                 " ip.part_no, ip.description"
-                 " FROM ifsapp.inventory_part ip"
-                 " WHERE ("
-                 "contains(ip.text_id$, ?, 1) > 0"
-                 " AND "
-                 "(ip.planner_buyer in (?))"
-                 ") ORDER BY score(1) DESC, ip.description DESC")
-            (:query q) p]
+    (is (= (expected-stmt [(where-planner)] [(:query q) p])
            (qw/query->sql q)))))
 
 (deftest negated-filter-value-query
   (let [p "JELLIOTT"
         q (qp/search-str->query
            (str "bias unit 900 -planner:" p))]
-    (is (= [(str "SELECT"
-                 " ip.part_no, ip.description"
-                 " FROM ifsapp.inventory_part ip"
-                 " WHERE ("
-                 "contains(ip.text_id$, ?, 1) > 0"
-                 " AND "
-                 "(ip.planner_buyer not in (?))"
-                 ") ORDER BY score(1) DESC, ip.description DESC")
-            (:query q) p]
+    (is (= (expected-stmt [(where-planner 1 true)] [(:query q) p])
            (qw/query->sql q)))))
 
 (deftest multiple-filter-value-query
@@ -62,15 +96,7 @@
         q (qp/search-str->query
            (str "bias unit 900 planner:" (str/join "," ps)
                 " -planner:" np))]
-    (is (= (flatten
-            [(str "SELECT"
-                  " ip.part_no, ip.description"
-                  " FROM ifsapp.inventory_part ip"
-                  " WHERE ("
-                  "contains(ip.text_id$, ?, 1) > 0"
-                  " AND "
-                  "((ip.planner_buyer in (?, ?)) AND"
-                  " (ip.planner_buyer not in (?)))"
-                  ") ORDER BY score(1) DESC, ip.description DESC")
-             (:query q) ps np])
+    (is (= (expected-stmt [(str "(" (where-planner 2) " AND "
+                                (where-planner 1 true) ")")]
+                          (cons (:query q) (conj ps np)))
            (qw/query->sql q)))))
