@@ -10,8 +10,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers to create the expected return values
 
-(def select-fields "SELECT ip.part_no, ip.description")
-(def from-tables "FROM ifsapp.inventory_part ip")
+(def select-fields
+  (str "SELECT "
+       (str/join ", " ["ip.part_no"
+                       "ipcp.cust_part_no"
+                       "ipcp.issue"
+                       "ipcp.description"
+                       "ip.description AS full_description"
+                       (str "decode(ip.type_code_db,"
+                            " 3, 'Raw',"
+                            " ip.type_code"
+                            ") AS type")
+                       "ip.part_status AS status_code"
+                       "initcap(ps.description) AS status"])))
+(def from-tables
+  (str "FROM ifsapp.inventory_part ip"
+       " INNER JOIN ifsinfo.inv_part_cust_part_no ipcp"
+       " ON ip.part_no = ipcp.part_no"
+       " INNER JOIN ifsapp.inventory_part_status_par ps"
+       " ON ip.part_status = ps.part_status"))
 (def where-contains "contains(ip.text_id$, ?, 1) > 0")
 (def order-by "ORDER BY score(1) DESC, ip.description DESC")
 

@@ -7,7 +7,7 @@
   to retrieve the matching parts from and IFS database (by being used
   in a JDBC `query` call, for example.)"
   (:require [honeysql.core :as sql]
-            [honeysql.helpers :as sql-h]
+            [honeysql.helpers :as h]
             [schema.core :as s]
             [ifs-part-search.query-parser :as qp]))
 
@@ -68,7 +68,7 @@
              []
              fm)]
     (if (seq fvs)
-      (apply sql-h/merge-where sql fvs)
+      (apply h/merge-where sql fvs)
       sql)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,9 +81,24 @@
   (if (:query q)
     (sql/format
      (add-filters
-      {:select [:ip.part_no :ip.description]
-       :from [[:ifsapp.inventory_part :ip]]
-       :where [:> (sql/call :contains :ip.text_id$ (:query q) 1) 0]
-       :order-by [[(sql/call :score 1) :desc] [:ip.description :desc]]}
+      (-> (h/select :ip.part_no
+                    :ipcp.cust_part_no
+                    :ipcp.issue
+                    :ipcp.description
+                    [:ip.description :full_description]
+                    [(sql/call
+                      :decode :ip.type_code_db
+                      3 (sql/raw "'Raw'")
+                      :ip.type_code)
+                     :type]
+                    [:ip.part_status :status_code]
+                    [(sql/call :initcap :ps.description) :status])
+          (h/from [:ifsapp.inventory_part :ip])
+          (h/join [:ifsinfo.inv_part_cust_part_no :ipcp]
+                  [:= :ip.part_no :ipcp.part_no]
+                  [:ifsapp.inventory_part_status_par :ps]
+                  [:= :ip.part_status :ps.part_status])
+          (h/where [:> (sql/call :contains :ip.text_id$ (:query q) 1) 0])
+          (h/order-by [(sql/call :score 1) :desc] [:ip.description :desc]))
       (:filters q)))
     nil))
