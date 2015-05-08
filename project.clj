@@ -34,5 +34,14 @@
                                   [org.clojure/test.check "0.7.0"]]}
              :repl {:source-paths ["dev" "src"]}}
 
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version"
+                   "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
+
   :repl-options {:init-ns user
                  :init (user/init)})
