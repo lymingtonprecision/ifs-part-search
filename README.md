@@ -34,6 +34,18 @@ From the repl:
     lein repl
     user=> (go)
 
+### Required Database Permissions
+
+The user account used to establish the database connection must have
+the following access rights:
+
+    grant create session to partsearch;
+    -- selects
+    grant select on ifsapp.inventory_part to partsearch;
+    grant select on ifsapp.inventory_part_status_par to partsearch;
+    -- IALs
+    grant select on ifsinfo.inv_part_cust_part_no to partsearch;
+
 ## Usage
 
 Make a HTTP `GET` request to the `search` page with your search query

@@ -30,9 +30,12 @@
                  [com.cognitect/transit-clj "0.8.271"]
                  [ring-transit "0.1.3"]]
 
+  :main ifs-part-search.main
+
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.10"]
                                   [org.clojure/test.check "0.7.0"]]}
-             :repl {:source-paths ["dev" "src"]}}
+             :repl {:source-paths ["dev" "src"]}
+             :uberjar {:aot [ifs-part-search.main]}}
 
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version"
