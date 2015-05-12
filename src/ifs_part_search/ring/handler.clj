@@ -7,6 +7,7 @@
 
             [ring.middleware.params :as params]
             [ring.middleware.transit :as mwtr]
+            [ring.middleware.cors :as cors]
 
             [ifs-part-search.routes]))
 
@@ -16,6 +17,7 @@
 
 (defn ring-middleware [handler]
   (-> handler
+      (cors/wrap-cors identity)
       wrap-keywordize-params
       mwtr/wrap-transit-body
       params/wrap-params

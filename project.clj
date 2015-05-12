@@ -26,6 +26,7 @@
                  ;; web
                  [http-kit "2.1.19"]
                  [ring/ring-core "1.3.2"]
+                 [jumblerg/ring.middleware.cors "1.0.1"]
                  [prismatic/fnhouse "0.1.1"]
                  [com.cognitect/transit-clj "0.8.271"]
                  [ring-transit "0.1.3"]]
