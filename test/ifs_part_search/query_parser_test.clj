@@ -114,6 +114,11 @@
 (deftest empty-search-term-map
   (is (= (term-map) (qp/search-str->term-map ""))))
 
+(deftest multiple-spaces-between-terms
+  (is (= (term-map {:terms [["{bias}" "%bias%"]
+                            ["{900}" "%900%"]]})
+         (qp/search-str->term-map "bias  900"))))
+
 (deftest literal-and-non-literal-search-term-map
   (is (= (term-map {:terms [["{bias}" "%bias%"]
                             ["{unit}"]
