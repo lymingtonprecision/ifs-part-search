@@ -19,6 +19,6 @@
       {:status 400 :body (select-keys s [:error])}
       (let [sql (-> s qw/query->sql)
             r (if sql
-                (jdbc/query database s :identifiers sane-column-key)
+                (jdbc/query database sql :identifiers sane-column-key)
                 [])]
         {:body r}))))
