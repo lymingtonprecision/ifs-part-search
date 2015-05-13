@@ -105,7 +105,7 @@
 (def parser
   "A parser for our supported search grammer"
   (insta/parser
-   "<search> = (term | filter) {<separator+> (term | filter)}
+   "<search> = <separator*> (term | filter) {<separator+> (term | filter)} <separator*>
     separator = ' '
     negator = <'-'>
 

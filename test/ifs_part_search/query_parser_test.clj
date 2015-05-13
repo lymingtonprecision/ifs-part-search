@@ -114,10 +114,17 @@
 (deftest empty-search-term-map
   (is (= (term-map) (qp/search-str->term-map ""))))
 
-(deftest multiple-spaces-between-terms
-  (is (= (term-map {:terms [["{bias}" "%bias%"]
-                            ["{900}" "%900%"]]})
-         (qp/search-str->term-map "bias  900"))))
+(deftest errant-spaces
+  (let [clean-search "bias 900"
+        terms (term-map {:terms [["{bias}" "%bias%"]
+                                 ["{900}" "%900%"]]})]
+    (testing "spaces-between-terms"
+      (is (= terms (qp/search-str->term-map
+                    (clojure.string/replace clean-search " " "  ")))))
+    (testing "trailing-spaces-after-terms"
+      (is (= terms (qp/search-str->term-map (str clean-search "  ")))))
+    (testing "leading-spaces-before-terms"
+      (is (= terms (qp/search-str->term-map (str "  " clean-search)))))))
 
 (deftest literal-and-non-literal-search-term-map
   (is (= (term-map {:terms [["{bias}" "%bias%"]
