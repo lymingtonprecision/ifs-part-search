@@ -126,6 +126,21 @@
     (testing "leading-spaces-before-terms"
       (is (= terms (qp/search-str->term-map (str "  " clean-search)))))))
 
+(deftest quotes-in-search-terms
+  (testing "search-containing-a-single-quote-char"
+    (is (= (term-map {:terms [["{6}" "%6%"]
+                              ["{bias}" "%bias%"]]})
+           (qp/search-str->term-map "6\" bias"))))
+  (testing "search-with-literal-term-and-standalone-quote-char"
+    (is (= (term-map {:terms [["{6}" "%6%"]
+                              ["{bias}" "%bias%"]
+                              ["{unit}"]]})
+           (qp/search-str->term-map "6\" bias \"unit\""))))
+  (testing "quote-after-space"
+    (is (= (term-map {:terms [["{6}" "%6%"]
+                              ["{bias}" "%bias%"]]})
+           (qp/search-str->term-map "6 \" bias")))))
+
 (deftest literal-and-non-literal-search-term-map
   (is (= (term-map {:terms [["{bias}" "%bias%"]
                             ["{unit}"]

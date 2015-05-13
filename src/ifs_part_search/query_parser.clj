@@ -110,9 +110,9 @@
 
     <term> = negated-term | positive-term
     negated-term = <negator> positive-term
-    <positive-term> = literal-term | non-literal-term
-    literal-term = <'\"'> #'[^\"]+' <'\"'>
-    non-literal-term = #'[^\" -]+'
+    <positive-term> = literal-term / non-literal-term
+    literal-term = <'\"'>#'[^\"]+'<'\"'>
+    non-literal-term = #'[^ -]+'
 
     filter = negator? filter-name <filter-separator> filter-value-list
     filter-separator = ':'
@@ -173,6 +173,18 @@
                            (str "%" (escape-special-chars v) "%")]))}
    pt))
 
+(defn remove-empty-terms
+  "Removes any empty term entries from the simplified parse result
+  tree `spr`."
+  [spr]
+  (reduce
+   (fn [r e]
+     (if (or (map? e) (not= "{}" (first e)))
+       (conj r e)
+       r))
+   []
+   spr))
+
 (defn add-to-filters
   "Retruns the term map `tm` with filter values `vs` added to the
   filter entry `k`.
@@ -217,7 +229,7 @@
   (let [r (parse-search-str q)]
     (if (insta/failure? r)
       {:terms [] :filters {} :error (insta/get-failure r)}
-      (-> r simplify-parse-result map-terms-and-filters))))
+      (-> r simplify-parse-result remove-empty-terms map-terms-and-filters))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; fns to produce an Oracle text query from the transformed parse tree
