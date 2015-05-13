@@ -11,7 +11,6 @@
                  [prismatic/schema "0.4.2"]
                  [prismatic/plumbing "0.4.2"]
                  [instaparse "1.4.0"]
-                 [org.clojure/math.combinatorics "0.1.1"]
 
                  ;; logging
                  [org.clojure/tools.logging "0.3.1"]

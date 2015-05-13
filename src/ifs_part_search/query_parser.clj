@@ -73,7 +73,6 @@
   [relaxation template]: http://docs.oracle.com/cd/B19306_01/text.102/b14218/csql.htm#sthref134"
   (:require [clojure.string :as str]
             [instaparse.core :as insta]
-            [clojure.math.combinatorics :as combo]
             [schema.core :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -227,10 +226,21 @@
     (str "NOT (" (reduce (fn [r t] (str r " | " t)) ns) ")")))
 
 (defn term-combinations
-  "Returns a collection of all possible combinations of the terms in
-  `ts`, in order of precedence from most specific (literal) to least."
+  "Returns a collection of suitable search term combinations from the
+  terms in `ts`, in order of precedence from most specific (literal)
+  to least.
+
+  The returned sequences will be: an all literal terms sequence and a
+  wildcard sequence (which is the same as the literal sequence but
+  with the wildcards for any non-literal terms are substituted for
+  their literal values.) If all terms are literal then only the
+  literal sequence will be returned."
   [ts]
-  (apply combo/cartesian-product ts))
+  (let [ms (reduce (fn [r t] (max r (count t))) 0 ts)
+        ts (map (fn [t] (into t (repeat (- ms (count t)) (first t)))) ts)]
+    (->> ts
+         (apply interleave)
+         (partition (count ts)))))
 
 (defn terms->txt-query-seqs
   "Returns a collection of Oracle text query search strings for all

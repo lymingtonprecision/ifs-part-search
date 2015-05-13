@@ -174,13 +174,9 @@
           [["{bias}"] ["{unit}"] ["{assy}"]]
           identity))))
 
-(deftest search-terms-are-the-cartesian-product-of-all-possibilities
+(deftest txt-query-seqs-produces-literal-and-wildcard-seqs-of-terms
   (is (= ["NEAR(({bias}, {unit}, {assy}), 100, TRUE)"
           "{bias} AND {unit} AND {assy}"
-          "NEAR(({bias}, {unit}, %assy%), 100, TRUE)"
-          "{bias} AND {unit} AND %assy%"
-          "NEAR((%bias%, {unit}, {assy}), 100, TRUE)"
-          "%bias% AND {unit} AND {assy}"
           "NEAR((%bias%, {unit}, %assy%), 100, TRUE)"
           "%bias% AND {unit} AND %assy%"]
          (qp/terms->txt-query-seqs
@@ -199,10 +195,6 @@
                       "<progression>"
                       "<seq>(NEAR(({bias}, {unit}, {900}), 100, TRUE) NOT ({orbit}))</seq>"
                       "<seq>({bias} AND {unit} AND {900} NOT ({orbit}))</seq>"
-                      "<seq>(NEAR(({bias}, {unit}, %900%), 100, TRUE) NOT ({orbit}))</seq>"
-                      "<seq>({bias} AND {unit} AND %900% NOT ({orbit}))</seq>"
-                      "<seq>(NEAR((%bias%, {unit}, {900}), 100, TRUE) NOT ({orbit}))</seq>"
-                      "<seq>(%bias% AND {unit} AND {900} NOT ({orbit}))</seq>"
                       "<seq>(NEAR((%bias%, {unit}, %900%), 100, TRUE) NOT ({orbit}))</seq>"
                       "<seq>(%bias% AND {unit} AND %900% NOT ({orbit}))</seq>"
                       "</progression>"
