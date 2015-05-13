@@ -14,10 +14,10 @@
                400 [s/Any]}}
   [[:request [:query-params q :- s/Str]]
    [:resources database]]
-  (let [s (-> q qp/search-str->query)]
+  (let [s (qp/search-str->query q)]
     (if (:error s)
       {:status 400 :body (select-keys s [:error])}
-      (let [sql (-> s qw/query->sql)
+      (let [sql (qw/query->sql s)
             r (if sql
                 (jdbc/query database sql :identifiers sane-column-key)
                 [])]
