@@ -112,7 +112,7 @@
     negated-term = <negator> positive-term
     <positive-term> = literal-term / non-literal-term
     literal-term = <'\"'>#'[^\"]+'<'\"'>
-    non-literal-term = #'[^ -]+'
+    non-literal-term = #'[^ ]+'
 
     filter = negator? filter-name <filter-separator> filter-value-list
     filter-separator = ':'

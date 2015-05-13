@@ -141,6 +141,10 @@
                               ["{bias}" "%bias%"]]})
            (qp/search-str->term-map "6 \" bias")))))
 
+(deftest hyphens-in-search-terms
+  (is (= (term-map {:terms [["{bias-unit}" "%bias\\-unit%"]]})
+         (qp/search-str->term-map "bias-unit"))))
+
 (deftest literal-and-non-literal-search-term-map
   (is (= (term-map {:terms [["{bias}" "%bias%"]
                             ["{unit}"]
