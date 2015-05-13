@@ -209,11 +209,15 @@
    spr))
 
 (defn search-str->term-map
-  "Returns a map of search terms and filters for the search string `q`."
+  "Returns a map of search terms and filters for the search string `q`.
+
+  If an error is encountered when parsing the search string then the
+  returned map will contain an `:error` entry."
   [q]
-  (-> (parse-search-str q)
-      simplify-parse-result
-      map-terms-and-filters))
+  (let [r (parse-search-str q)]
+    (if (insta/failure? r)
+      {:terms [] :filters {} :error (insta/get-failure r)}
+      (-> r simplify-parse-result map-terms-and-filters))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; fns to produce an Oracle text query from the transformed parse tree
@@ -289,7 +293,8 @@
          ts (terms->txt-query-seqs
              (:terms s)
              #(str "<seq>(" % " " n ")</seq>"))
-         tq (str "<query><textquery lang=\"ENGLISH\" grammar=\"CONTEXT\">"
-                 "<progression>" (str/join ts) "</progression>"
-                 "</textquery></query>")]
-     {:query tq :filters (:filters s)})))
+         tq (if (seq ts)
+              (str "<query><textquery lang=\"ENGLISH\" grammar=\"CONTEXT\">"
+                   "<progression>" (str/join ts) "</progression>"
+                   "</textquery></query>"))]
+     (merge {:query tq :filters (:filters s)} (select-keys s [:error])))))
