@@ -1,4 +1,4 @@
-(defproject ifs-part-search "1.0.6"
+(defproject ifs-part-search "1.0.7-SNAPSHOT"
   :description "A web API for searching for parts within IFS."
   :url "https://github.com/lymingtonprecision/ifs-part-search"
   :license {:name "Eclipse Public License"
