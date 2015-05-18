@@ -23,7 +23,7 @@
    s
    vs))
 
-(def -sanitized-chars (set "\"'()[]{},.*?_"))
+(def -sanitized-chars (set "\"'()[]{},*?_"))
 
 (defspec search-term-sanitization
   (prop/for-all

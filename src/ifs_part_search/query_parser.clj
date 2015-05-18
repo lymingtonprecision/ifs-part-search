@@ -134,7 +134,7 @@
 (defn sanitize-search-term
   "Removes unsupported characters from search terms."
   [t]
-  (str/replace t #"[\"'()\[\]{},.*?_]+" ""))
+  (str/replace t #"[\"'()\[\]{},*?_]+" ""))
 
 (defn escape-special-chars
   "Escapes special characters within search terms."
