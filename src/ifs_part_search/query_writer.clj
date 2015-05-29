@@ -81,8 +81,8 @@
   (if (:query q)
     (sql/format
      (add-filters
-      (-> (h/select :ip.part_no
-                    :ipcp.cust_part_no
+      (-> (h/select [:ip.part_no :id]
+                    [:ipcp.cust_part_no :customer-part]
                     :ipcp.issue
                     :ipcp.description
                     [:ip.description :full_description]

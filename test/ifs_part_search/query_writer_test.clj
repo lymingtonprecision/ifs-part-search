@@ -12,8 +12,8 @@
 
 (def select-fields
   (str "SELECT "
-       (str/join ", " ["ip.part_no"
-                       "ipcp.cust_part_no"
+       (str/join ", " ["ip.part_no AS id"
+                       "ipcp.cust_part_no AS customer_part"
                        "ipcp.issue"
                        "ipcp.description"
                        "ip.description AS full_description"
